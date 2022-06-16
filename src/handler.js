@@ -1,9 +1,9 @@
-const { nanoid } = import('nanoid');
+const { nanoid } = require('nanoid');
 const notes = require('./notes');
 
 const addNoteHandler = (req, h) => {
   const { title, tags, body } = req.payload;
-  const id = nanoid(16);
+  const id = nanoid();
   const createdAt = new Date().toISOString();
   const updatedAt = createdAt;
 
@@ -35,4 +35,11 @@ const addNoteHandler = (req, h) => {
   return res;
 };
 
-module.exports = { addNoteHandler };
+const getAllNotesHandler = () => ({
+  status: 'success',
+  data: {
+    notes,
+  },
+});
+
+module.exports = { addNoteHandler, getAllNotesHandler };
