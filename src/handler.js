@@ -1,8 +1,9 @@
+const { fail } = require('assert');
 const { nanoid } = require('nanoid');
 const notes = require('./notes');
 
-const addNoteHandler = (req, h) => {
-  const { title, tags, body } = req.payload;
+const addNoteHandler = (request, h) => {
+  const { title, tags, body } = request.payload;
   const id = nanoid(16);
   const createdAt = new Date().toISOString();
   const updatedAt = createdAt;
@@ -16,23 +17,23 @@ const addNoteHandler = (req, h) => {
   const isSuccess = notes.filter((note) => note.id === id).length > 0;
 
   if (isSuccess) {
-    const res = h.response({
+    const response = h.response({
       status: 'success',
       message: 'Note successfully added.',
       data: {
         noteId: id,
       },
     });
-    res.code(201);
-    return res;
+    response.code(201);
+    return response;
   }
 
-  const res = h.response({
+  const response = h.response({
     status: 'fail',
     message: 'Note cannot be added.',
   });
-  res.code(501);
-  return res;
+  response.code(501);
+  return response;
 };
 
 const getAllNotesHandler = () => ({
@@ -42,9 +43,9 @@ const getAllNotesHandler = () => ({
   },
 });
 
-const getNoteByIdHandler = (req, h) => {
-  const { id } = req.params;
-  const note = notes.filter(n => n.id === id)[0];
+const getNoteByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const note = notes.filter((n) => n.id === id)[0];
 
   if (note !== undefined) {
     return {
@@ -55,12 +56,48 @@ const getNoteByIdHandler = (req, h) => {
     };
   }
 
-  const res = h.response({
+  const response = h.response({
     status: 'fail',
     message: 'Note cannot be found.',
   });
-  res.code(404);
-  return res;
+  response.code(404);
+  return response;
 };
 
-module.exports = { addNoteHandler, getAllNotesHandler, getNoteByIdHandler };
+const editNoteByIdHandler = (request, h) => {
+  const { id } = request.params;
+  const { title, tags, body } = request.payload;
+  const updatedAt = new Date().toISOString();
+  const index = notes.findIndex((note) => note.id === id);
+
+  if (index !== -1) {
+    notes[index] = {
+      ...notes[index],
+      title,
+      tags,
+      body,
+      updatedAt,
+    };
+
+    const response = h.response({
+      status: 'success',
+      message: 'Note successfully updated.',
+    });
+    response.code(200);
+    return response;
+  }
+
+  const response = h.response({
+    status: fail,
+    message: 'Failed to update note. ID not found',
+  });
+  response.code(404);
+  return response;
+};
+
+module.exports = {
+  addNoteHandler,
+  getAllNotesHandler,
+  getNoteByIdHandler,
+  editNoteByIdHandler,
+};
